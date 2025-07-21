@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ContraPlay</title>
+<link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/lmproducoesvfx/lmproducoesvfx.github.io/refs/heads/main/contra_logo.ico">
+
+  <style>
+.menu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center; /* centraliza os botões */
+  gap: 10px;
+  padding: 10px 20px;
+  background-color: #141414;
+  text-align: center;
+}
+
+.menu button {
+  background-color: #06a0cf;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.menu .dropdown {
+  position: relative;
+}
+
+.menu .dropdown-content {
+  display: none;
+  position: absolute;
+  top: 36px;
+  left: 0;
+  background-color: #222;
+  padding: 5px 0;
+  border-radius: 5px;
+  z-index: 1000;
+}
+
+.menu .dropdown-content button {
+  display: block;
+  background: none;
+  padding: 8px 16px;
+  width: 100%;
+  text-align: left;
+}
+
+.menu .dropdown:hover .dropdown-content {
+  display: block;
+}
+
+    body {
+      margin: 0;
+      font-family: 'Bebas Neue', sans-serif;
+      background-color: #111;
+      color: #fff;
+      overflow-x: hidden;
+    }
+
+    header {
+      background-color: #141414;
+      padding: 20px;
+      text-align: center;
+      font-size: 3em;
+    }
+
+.highlight {
+  color: #06a0cf; /* ou a cor que você quiser */
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  justify-content: center; /* <-- centraliza o conteúdo */
+}
+
+.card {
+  background-color: #222;
+  border-radius: 5px;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: scale(1.2);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+   .card.inativo {
+     opacity: 0;
+     transform: scale(0.8);
+     pointer-events: none;
+     position: absolute;
+   }
+
+
+    .thumb {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    .title {
+      padding: 10px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .player-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.4s ease-in-out forwards;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: scale(0.95);}
+      to {opacity: 1; transform: scale(1);}
+    }
+
+    #ytPlayer {
+      width: 90vw;
+      height: 50vw;
+      max-width: 1280px;
+      max-height: 720px;
+      border: none;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 18px;
+      cursor: pointer;
+      color: #fff;
+      padding: 8px 16px;
+      background-color: #06a0cf;
+      border: none;
+      border-radius: 4px;
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+ <header onclick="filtrar('todos')" style="cursor: pointer;">
+  Contra<span class="highlight">Play</span>
+</header>
+
+
+<nav class="menu">
+  <button onclick="filtrar('todos')">Todos</button>
+  <div class="dropdown">
+    <button>Filmes ▾</button>
+    <div class="dropdown-content">
+      <button onclick="filtrar('sci-fi')">Sci-Fi</button>
+      <button onclick="filtrar('terror')">Terror</button>
+      <button onclick="filtrar('ação')">Ação</button>
+      <button onclick="filtrar('comedia')">Comédia</button>
+      <button onclick="filtrar('drama')">Drama</button>
+      <button onclick="filtrar('doc')">Documentário</button>
+    </div>
+  </div>
+  <button onclick="filtrar('curta')">Curtas</button>
+  <button onclick="filtrar('clipe')">Clipes</button>
+  <button onclick="filtrar('webserie')">Websérie</button>
+</nav>
+
+  <div class="grid" id="videoGrid"></div>
+
+  <!-- PLAYER POPUP -->
+  <div class="player-overlay" id="playerOverlay">
+    <iframe id="ytPlayer" allow="autoplay; fullscreen"></iframe>
+    <button class="close-btn" onclick="closePlayer()">Fechar</button>
+  </div>
+
+<script>
+  // Lista de vídeos manual, com ID extraído do link
+  const videos = [
+
+    {
+      id: "1eMcXfN-G7DnW-GEYl5MBqiEuYDuBIR7d",
+      nome: "Match (Parte 1)",
+      categoria: ["ação", "terror", "suspense", "drama","curta"],
+      poster: "1pd58UTCnkGn4t4HcLjDuKIVUfKTTsXLj"
+    },
+
+
+    {
+      id: "1GuWTEBqyNapr74wwhxO2mfgJK82kMGGJ",
+      nome: "Ponto de Fuga",
+      categoria: ["ação","curta"],
+      poster: "1_h6NEJI3lfO_COXKi1Fjz1_2cXBQgYHq"
+    },
+
+    {
+      id: "1IHjq-wuLpqHY9imj7J3icXsPHEX-qQZe",
+      nome: "Noite Amarela",
+      categoria: ["clipe"],
+      poster: "1ylVoEAn_lD6b4OuHsUoMRRSeuPRLliOT"
+    },
+
+    {
+      id: "1cMRdk0LJ7GJco8awFy-z6QOAuuqFgO67",
+      nome: "Um por um",
+      categoria: ["webserie","curta", "drama"],
+      poster: "1v8WAKIpo8GrTQiWmmAjVXtEBfJTigibF"
+    },
+
+
+    {
+      id: "1BZUYSKj4PyTKy0kTlixwXyOkp3c_xU7m",
+      nome: "Tumaiseu",
+      categoria: ["clipe"],
+      poster: "1tjO3_UPTisPt4y_RE1dT3vve-MEix5sU"
+    },
+
+
+    {
+      id: "1WklMHO5qVlHCYlr6pTLzU0PZv3yxvAtq",
+      nome: "Interfector",
+      categoria: ["ação", "sci-fi", "ficção cientifica"],
+      poster: "1aMFCV9YPHXQX32JIeTGjrhTyUMPtaDKU"
+    },
+
+
+    {
+      id: "17NUzejVnhm91s4dFZ0zebr4z7Y1qO09c",
+      nome: "Procurado",
+      categoria: ["ação"],
+      poster: "10C12YTBtnuL3V7Rj6swmX15ykI-HhTnm"
+    },
+    {
+      id: "1npdOTZK5006sF7p6I_YKoecFr3zbmsvu",
+      nome: "Nuclei Restriction",
+      categoria: ["clipe"],
+      poster: "1qFd_7QkJhiTZejRTEatIaNseZtMpmpdM"
+    },
+
+    {
+      id: "1-UeOLoNK08MU_w-eouk3wl_XyuVfrn0g",
+      nome: "O Médico e o Monstro.mp4",
+      categoria: ["curta", "terror", "suspense", "drama", "sci-fi"],
+      poster: "1oHfGOEQ3hPTt3Tl3UfyLwb-LLJuILRzT"
+    },
+
+    {
+      id: "1YR9xTuwMH_o650QD-JNfMdlpSaOWKzMx",
+      nome: "Out of Strength",
+      categoria: ["clipe"],
+      poster: "1kMZWeBPC1UVV9GIt0MsV1O8CtUD1HlR6"
+    },
+
+    {
+      id: "1yqUHHfVzsi0Yd-J54qqStQJ1z_ZHnQpi",
+      nome: "Relembrando Velhos Hábitos",
+      categoria: ["clipe"],
+      poster: "1TRDtFw7GX_muagGxk2ksnb6Slix_khf8"
+    },
+
+
+    {
+      id: "1STHzdq3zPdxQXIEqhXWPzzZ6FwhkHi5P",
+      nome: "MAAFA",
+      categoria: ["doc"],
+      poster: "1LpQcmurBLMgMkqUjqjbGVNRHsMKtuJo8"
+    },
+
+
+    {
+      id: "1spDyviKNpbmBCKb5XxrXSJqX0TJpvR2w",
+      nome: "F.E.A.R.",
+      categoria: ["terror", "sci-fi", "ficção cientifica"],
+      poster: "18d5bU7BYuftsxT1W7rLvfYQw17-WaPXn"
+    },
+
+    {
+      id: "1aVgnpqYxNdpgOOfjWB8GZibohY5Pjyyz",
+      nome: "Virusfera",
+      categoria: ["ação", "sci-fi", "ficção cientifica"],
+      poster: "10mQl3o4Qmp_eAOX3NC5wGOtNL7pCTjVS"
+    }
+  ];
+
+  const grid = document.getElementById("videoGrid");
+
+  function gerarLinkDireto(id) {
+    return `https://drive.google.com/uc?export=download&id=${id}`;
+  }
+
+  function renderizarVideos() {
+    grid.innerHTML = "";
+
+    videos.forEach(video => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.categoria = video.categoria.join(',');
+
+      card.onclick = () => playVideo(video.id);
+
+const img = document.createElement("img");
+img.className = "thumb";
+
+if (video.poster) {
+  img.src = `https://drive.google.com/thumbnail?id=${video.poster}&sz=w800`;
+} else {
+  img.src = "https://via.placeholder.com/400x210/333333/ffffff?text=Preview";
+}
+
+// evitar loop de erro
+img.onerror = function () {
+  this.onerror = null;
+  this.src = "https://via.placeholder.com/400x210/333333/ffffff?text=Preview";
+};
+
+
+      const title = document.createElement("div");
+      title.className = "title";
+      title.innerText = video.nome || "Filme";
+
+      card.appendChild(img);
+      card.appendChild(title);
+      grid.appendChild(card);
+    });
+  }
+
+  function playVideo(id) {
+    const overlay = document.getElementById("playerOverlay");
+    const player = document.getElementById("ytPlayer");
+    overlay.style.display = "flex";
+
+    // roda direto do Google Drive
+    player.src = `https://drive.google.com/file/d/${id}/preview`;
+    setTimeout(() => {
+      if (player.requestFullscreen) player.requestFullscreen();
+    }, 500);
+  }
+
+  function closePlayer() {
+    const overlay = document.getElementById("playerOverlay");
+    const player = document.getElementById("ytPlayer");
+    player.src = "";
+    overlay.style.display = "none";
+  }
+
+ function filtrar(categoria) {
+  const cards = document.querySelectorAll(".card");
+
+  cards.forEach(card => {
+    const categorias = card.dataset.categoria.split(',');
+    if (categoria === "todos" || categorias.includes(categoria)) {
+      card.classList.remove("inativo");
+    } else {
+      card.classList.add("inativo");
+    }
+  });
+}
+
+  renderizarVideos();
+
+</script>
+</body>
+</html>
